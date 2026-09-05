@@ -1,0 +1,102 @@
+name: Setup Node environment
+description: Install Node.js and the repository package manager, with a dependency cache.
+
+# Inspired by openclaw/openclaw .github/actions/setup-node-env, not a port.
+# The OpenClaw original is 483 lines: bun installation, dependency fingerprinting, a
+# separate store-cache action, and cache authority modes. That machinery exists to serve a
+# very large monorepo. Reproducing it here would be copying complexity we do not have.
+#
+# This version does the part every repository needs, using the first-party cache built into
+# actions/setup-node. If a repository outgrows it, port the real thing then, against a
+# measured cache problem.
+
+inputs:
+  node-version:
+    description: Node.js version to install.
+    required: false
+    default: "22.x"
+  package-manager:
+    description: Package manager to configure the cache for (npm, pnpm, yarn, or none).
+    required: false
+    default: "npm"
+  install:
+    description: Whether to install dependencies after setting up Node.
+    required: false
+    default: "true"
+  working-directory:
+    description: Directory containing the manifest and lockfile.
+    required: false
+    default: "."
+
+outputs:
+  node-version:
+    description: Node.js version that was installed.
+    value: ${{ steps.node.outputs.node-version }}
+  cache-hit:
+    description: Whether the dependency cache restored an exact key.
+    value: ${{ steps.node.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs and resolve the lockfile
+      id: resolve
+      shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        case "$PACKAGE_MANAGER" in
+          npm)  lockfile="package-lock.json" ;;
+          pnpm) lockfile="pnpm-lock.yaml" ;;
+          yarn) lockfile="yarn.lock" ;;
+          none) lockfile="" ;;
+          *)
+            echo "::error::Invalid package-manager input: '$PACKAGE_MANAGER' (expected npm, pnpm, yarn, or none)"
+            exit 2
+            ;;
+        esac
+
+        if [ -n "$lockfile" ]; then
+          path="${WORKING_DIRECTORY%/}/$lockfile"
+          if [ ! -f "$path" ]; then
+            echo "::error::$PACKAGE_MANAGER was requested but $path does not exist"
+            exit 1
+          fi
+          echo "lockfile=$path" >> "$GITHUB_OUTPUT"
+          echo "Using $path to key the dependency cache."
+        else
+          echo "lockfile=" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Enable corepack for pnpm and yarn
+      if: inputs.package-manager == 'pnpm' || inputs.package-manager == 'yarn'
+      shell: bash
+      run: |
+        set -euo pipefail
+        # corepack activates the exact version pinned by packageManager in package.json,
+        # so CI and the developer machine agree without a version input here.
+        corepack enable
+
+    - name: Setup Node.js
+      id: node
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.package-manager != 'none' && inputs.package-manager || '' }}
+        cache-dependency-path: ${{ steps.resolve.outputs.lockfile }}
+
+    - name: Install dependencies
+      if: inputs.install == 'true' && inputs.package-manager != 'none'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+      run: |
+        set -euo pipefail
+        case "$PACKAGE_MANAGER" in
+          npm)  npm ci ;;
+          pnpm) pnpm install --frozen-lockfile ;;
+          yarn) yarn install --immutable ;;
+        esac
