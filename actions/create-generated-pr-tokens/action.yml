@@ -1,0 +1,60 @@
+name: Create generated PR tokens
+description: Mint repository-scoped GitHub App tokens for generated branch and pull request publication.
+
+# Ported from openclaw/openclaw .github/actions/create-generated-pr-tokens.
+# Kept close to the original: two separately scoped installation tokens, so the identity
+# that can write contents is not automatically the identity that can open a pull request.
+#
+# In this loop that split maps onto the App identities: Brokkr holds contents write, and a
+# pull request is opened with a token that has pull request write. Splitting them keeps a
+# generated-content job from silently gaining merge reach.
+
+inputs:
+  contents-app-id:
+    description: GitHub App id with contents write access.
+    required: true
+  contents-private-key:
+    description: GitHub App private key with contents write access.
+    required: true
+  pull-request-app-id:
+    description: GitHub App id with pull request write access.
+    required: true
+  pull-request-private-key:
+    description: GitHub App private key with pull request write access.
+    required: true
+  pull-request-contents-permission:
+    description: Optional contents permission for pull request operations that need repository write access.
+    required: false
+    default: ""
+
+outputs:
+  contents-token:
+    description: Repository-scoped contents-write installation token.
+    value: ${{ steps.contents-token.outputs.token }}
+  pull-request-token:
+    description: Repository-scoped pull-request-write installation token.
+    value: ${{ steps.pull-request-token.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create generated branch app token
+      id: contents-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        app-id: ${{ inputs.contents-app-id }}
+        private-key: ${{ inputs.contents-private-key }}
+        owner: ${{ github.repository_owner }}
+        repositories: ${{ github.event.repository.name }}
+        permission-contents: write
+
+    - name: Create generated pull request app token
+      id: pull-request-token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        app-id: ${{ inputs.pull-request-app-id }}
+        private-key: ${{ inputs.pull-request-private-key }}
+        owner: ${{ github.repository_owner }}
+        repositories: ${{ github.event.repository.name }}
+        permission-contents: ${{ inputs.pull-request-contents-permission }}
+        permission-pull-requests: write

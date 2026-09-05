@@ -1,0 +1,159 @@
+name: Auto Response
+
+# Ported from openclaw/openclaw .github/workflows/auto-response.yml.
+# Made repository-neutral: the OpenClaw original delegated everything to
+# scripts/github/barnacle-auto-response.mjs, which does not exist here. That step is
+# replaced with inline logic that does the one job this loop needs on a new issue:
+# check the required template fields, say what is missing, and label the issue so the
+# triage identity and the runner can both see the result.
+#
+# Linking to the tracker is deliberately NOT done here. It needs tracker credentials, which do
+# not belong in a GitHub Actions runner. The the runner host triage service does the tracker link and
+# fills the "Work item" field. See the runner's private specification, Triage flow.
+#
+# Runs as the triage identity (Ratatoskr) when RATATOSKR_APP_ID and RATATOSKR_PRIVATE_KEY
+# are set, otherwise as github-actions[bot] via GITHUB_TOKEN.
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  auto-response:
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        continue-on-error: true
+        with:
+          app-id: ${{ vars.RATATOSKR_APP_ID }}
+          private-key: ${{ secrets.RATATOSKR_PRIVATE_KEY }}
+          permission-issues: write
+          permission-metadata: read
+
+      - name: Check required template fields
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token || github.token }}
+          script: |
+            const issue = context.payload.issue;
+            const body = String(issue.body || "");
+            const labels = (issue.labels ?? []).map((label) => label.name);
+
+            // Issue forms render as "### Heading" followed by the answer. An unanswered
+            // optional field renders as "_No response_". Walk the lines instead of building
+            // a RegExp per heading: one heading is "Who implements this?" and regex-escaping
+            // headings inside a template literal is a needless way to get this wrong.
+            const sections = new Map();
+            {
+              let current = null;
+              let buffer = [];
+              const flush = () => {
+                if (current !== null) {
+                  sections.set(current, buffer.join("\n").trim());
+                }
+              };
+              for (const line of body.split(/\r?\n/)) {
+                const heading = /^###\s+(.*?)\s*$/.exec(line);
+                if (heading) {
+                  flush();
+                  current = heading[1];
+                  buffer = [];
+                } else if (current !== null) {
+                  buffer.push(line);
+                }
+              }
+              flush();
+            }
+
+            function fieldValue(heading) {
+              const value = sections.get(heading);
+              if (value === undefined || value === "" || value === "_No response_") {
+                return null;
+              }
+              return value;
+            }
+
+            // Which fields are required depends on which form was used, which we read
+            // from the labels the form applied.
+            let required;
+            if (labels.includes("docs")) {
+              required = ["Summary", "Affected docs path or URL", "Repository", "Steps to reproduce or verify", "Expected docs content", "Actual docs content", "Impact", "Evidence"];
+            } else if (labels.includes("enhancement")) {
+              required = ["Repository", "Summary", "Problem to solve", "Proposed solution", "Impact", "Who implements this?"];
+            } else if (labels.includes("bug")) {
+              required = ["Bug type", "Summary", "Steps to reproduce", "Expected behavior", "Actual behavior", "Repository", "Commit", "Environment", "Harness", "Model"];
+            } else {
+              core.info("Issue carries no recognised form label; skipping the field check.");
+              return;
+            }
+
+            const missing = required.filter((heading) => fieldValue(heading) === null);
+            const notEnoughInfo = required.filter((heading) => (fieldValue(heading) || "") === "NOT_ENOUGH_INFO");
+
+            const workItem = fieldValue("Work item");
+            const wantedLabels = new Set();
+            if (missing.length > 0) {
+              wantedLabels.add("needs-info");
+            }
+            if (!workItem) {
+              wantedLabels.add("needs-work-item");
+            }
+
+            for (const label of ["needs-info", "needs-work-item"]) {
+              const has = labels.includes(label);
+              if (wantedLabels.has(label) && !has) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: [label],
+                });
+              } else if (!wantedLabels.has(label) && has) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: label,
+                });
+              }
+            }
+
+            if (missing.length === 0) {
+              core.info("Every required field is answered.");
+              if (notEnoughInfo.length > 0) {
+                core.info(`Answered with NOT_ENOUGH_INFO: ${notEnoughInfo.join(", ")}`);
+              }
+              return;
+            }
+
+            // Comment once. Editing the issue re-runs this workflow, and a comment per
+            // edit would bury the issue.
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              per_page: 100,
+            });
+            const marker = "<!-- auto-response: required fields -->";
+            if (comments.some((comment) => String(comment.body || "").includes(marker))) {
+              core.info("Already commented about required fields; not repeating.");
+              return;
+            }
+
+            const lines = missing.map((heading) => `- ${heading}`).join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `${marker}\nThis issue is missing required fields:\n\n${lines}\n\nEdit the issue to fill them in. This check runs again on every edit.`,
+            });

@@ -1,0 +1,6 @@
+{
+  "name": "Maintainer Command Reactions",
+  "description": "Acknowledges a maintainer slash command with an eyes reaction so a person can see it was received. Execution belongs to the runner.",
+  "iconName": "octicon smiley",
+  "categories": ["Automation"]
+}

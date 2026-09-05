@@ -1,0 +1,86 @@
+name: Stale
+
+# Ported from openclaw/openclaw .github/workflows/stale.yml.
+# Made repository-neutral: the Barnacle backfill job was dropped because it calls
+# scripts/github/*.mjs, which does not exist here. The two actions/stale lanes are kept,
+# with OpenClaw label names and Discord copy replaced.
+#
+# Runs as the triage identity (Ratatoskr) when RATATOSKR_APP_ID and RATATOSKR_PRIVATE_KEY
+# are set, otherwise as github-actions[bot] via GITHUB_TOKEN.
+#
+# Note for loop-managed repositories: items the runner owns are exempted through the
+# "loop" label. Add that label to anything the runner opens so a slow build is never
+# closed out from under it.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  stale:
+    permissions:
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        continue-on-error: true
+        with:
+          app-id: ${{ vars.RATATOSKR_APP_ID }}
+          private-key: ${{ secrets.RATATOSKR_PRIVATE_KEY }}
+          permission-issues: write
+          permission-metadata: read
+          permission-pull-requests: write
+
+      - name: Mark stale unassigned issues and pull requests
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          repo-token: ${{ steps.app-token.outputs.token || github.token }}
+          days-before-issue-stale: 14
+          days-before-issue-close: 7
+          days-before-pr-stale: 14
+          days-before-pr-close: 7
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: loop,enhancement,pinned,security,no-stale,bug
+          exempt-pr-labels: loop,no-stale
+          operations-per-run: 300
+          ascending: true
+          exempt-all-assignees: true
+          remove-stale-when-updated: true
+          stale-issue-message: |
+            This issue has been automatically marked as stale due to inactivity.
+            Add an update or it will be closed.
+          stale-pr-message: |
+            This pull request has been automatically marked as stale due to inactivity.
+            Add an update or it will be closed.
+          close-issue-message: |
+            Closing due to inactivity. Reopen with fresh evidence if this still happens.
+          close-issue-reason: not_planned
+          close-pr-message: |
+            Closing due to inactivity. Reopen if this work is still wanted.
+
+      - name: Mark stale assigned issues
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          repo-token: ${{ steps.app-token.outputs.token || github.token }}
+          days-before-issue-stale: 30
+          days-before-issue-close: 10
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: stale
+          exempt-issue-labels: loop,enhancement,pinned,security,no-stale
+          operations-per-run: 300
+          ascending: true
+          include-only-assigned: true
+          remove-stale-when-updated: true
+          stale-issue-message: |
+            This assigned issue has been automatically marked as stale after 30 days of inactivity.
+            Add an update or it will be closed.
+          close-issue-message: |
+            Closing due to inactivity. Reopen with fresh evidence if this still happens.
+          close-issue-reason: not_planned

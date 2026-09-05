@@ -1,0 +1,141 @@
+name: Labeler
+
+# Ported from openclaw/openclaw .github/workflows/labeler.yml.
+# Made repository-neutral: the OpenClaw title lint and Barnacle backfill lanes were
+# dropped because they call scripts/github/*.mjs, which does not exist here. What is
+# kept is the part that needs no repository script: actions/labeler driven by
+# .github/labeler.yml, plus the inline pull request size label.
+#
+# Runs as the triage identity (Ratatoskr). Set repository variable RATATOSKR_APP_ID and
+# repository secret RATATOSKR_PRIVATE_KEY. Without them the step falls back to
+# GITHUB_TOKEN, which labels as github-actions[bot] instead of the triage identity.
+
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] triage-owned workflow; no untrusted checkout, no PR code execution
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  label:
+    if: >-
+      ${{
+        github.event.action != 'edited' ||
+        github.event.changes.title ||
+        github.event.changes.base
+      }}
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        continue-on-error: true
+        with:
+          app-id: ${{ vars.RATATOSKR_APP_ID }}
+          private-key: ${{ secrets.RATATOSKR_PRIVATE_KEY }}
+          permission-contents: read
+          permission-issues: write
+          permission-metadata: read
+          permission-pull-requests: write
+
+      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
+        with:
+          configuration-path: .github/labeler.yml
+          repo-token: ${{ steps.app-token.outputs.token || github.token }}
+          sync-labels: true
+
+      - name: Apply pull request size label
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token || github.token }}
+          script: |
+            const pullRequest = context.payload.pull_request;
+            if (!pullRequest) {
+              return;
+            }
+
+            const sizeLabels = ["size: XS", "size: S", "size: M", "size: L", "size: XL"];
+            const labelColor = "b76e79";
+
+            for (const label of sizeLabels) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                });
+              } catch (error) {
+                if (error?.status !== 404) {
+                  throw error;
+                }
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  color: labelColor,
+                });
+              }
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequest.number,
+              per_page: 100,
+            });
+
+            // Generated evidence and lockfiles do not reflect review effort.
+            const excludedLockfiles = new Set([
+              "pnpm-lock.yaml",
+              "yarn.lock",
+              "bun.lockb",
+              "package-lock.json",
+              "poetry.lock",
+              "uv.lock",
+            ]);
+            const totalChangedLines = files.reduce((total, file) => {
+              const path = file.filename ?? "";
+              if (path.startsWith("docs/") || path.startsWith("receipts/") || excludedLockfiles.has(path)) {
+                return total;
+              }
+              return total + (file.additions ?? 0) + (file.deletions ?? 0);
+            }, 0);
+
+            function sizeFor(lines) {
+              if (lines < 10) return "size: XS";
+              if (lines < 100) return "size: S";
+              if (lines < 500) return "size: M";
+              if (lines < 1000) return "size: L";
+              return "size: XL";
+            }
+
+            const desired = sizeFor(totalChangedLines);
+            const current = (pullRequest.labels ?? []).map((label) => label.name);
+
+            for (const label of sizeLabels) {
+              if (label !== desired && current.includes(label)) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pullRequest.number,
+                  name: label,
+                });
+              }
+            }
+
+            if (!current.includes(desired)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pullRequest.number,
+                labels: [desired],
+              });
+            }
+
+            core.info(`Pull request #${pullRequest.number} has ${totalChangedLines} counted lines: ${desired}`);

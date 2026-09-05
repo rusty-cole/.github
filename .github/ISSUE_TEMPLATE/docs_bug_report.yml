@@ -1,0 +1,98 @@
+name: Docs bug report
+description: Report documentation defects (incorrect, missing, outdated, or contradictory docs).
+title: "[Docs Bug]: "
+labels:
+  - bug
+  - docs
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report a documentation defect with concrete evidence from current docs content or behavior.
+        Report one documentation defect per submission.
+
+        Leave "Work item" blank unless you already have one. The triage identity fills it in
+        when it links this issue to an existing tracker work item or creates a new one.
+  - type: input
+    id: work_item
+    attributes:
+      label: Work item
+      description: >
+        URL or identifier of the tracker work item this issue belongs to. Filled by the triage
+        identity when it links or creates the Work item.
+      placeholder: ITEM-42
+    validations:
+      required: false
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-sentence statement of what is wrong in the docs.
+      placeholder: The runner README still documents bare-branch merges and does not mention the pull request step.
+    validations:
+      required: true
+  - type: input
+    id: doc_paths
+    attributes:
+      label: Affected docs path or URL
+      description: >
+        Repository-relative docs path or published docs URL. Prefer a blob-at-commit URL so the
+        line numbers stay valid: https://github.com/OWNER/REPO/blob/SHA/path/to/file.md#L10-L20
+      placeholder: https://github.com/rusty-cole/example-repo/blob/main/README.md
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      description: Repository that owns the docs.
+      placeholder: rusty-cole/example-repo
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce or verify
+      description: Minimal steps to observe the docs defect in the current docs.
+      placeholder: |
+        1. Open the runner README at main.
+        2. Read the "How a merge happens" section.
+        3. Observe that it describes a direct push to main with no pull request.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected docs content
+      description: What the docs should say or show instead.
+      placeholder: The section should describe the builder identity opening a pull request and merging the verified head.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual docs content
+      description: What the docs currently say or show.
+      placeholder: The section describes the runner pushing straight to main.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Who is affected and the practical consequence.
+      placeholder: Anyone reading the README believes there is no pull request stage and looks for evidence in the wrong place.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Links, snippets, or screenshots proving the docs defect. Use exact file URLs and line ranges.
+    validations:
+      required: true
+  - type: textarea
+    id: additional_information
+    attributes:
+      label: Additional information
+      description: Optional context, related issues or pull requests, or constraints.

@@ -1,0 +1,75 @@
+# Dependabot configuration example.
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Copy to .github/dependabot.yml in the target repository and delete the ecosystems it
+# does not use. Dependabot is not one of the default community health files, so it has to
+# live in each repository.
+#
+# Adapted from openclaw/openclaw .github/dependabot.yml. The npm registry block with an
+# auth token was dropped: these repositories install from the public registry, and a
+# private registry token in Dependabot config is a secret to add deliberately, not to
+# inherit by copy and paste.
+#
+# The github-actions ecosystem matters most here. Every action is pinned by commit SHA, and
+# a SHA pin does not update itself. Without this block the pins quietly rot. Dependabot
+# understands SHA pins and rewrites both the SHA and the version comment.
+
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 2
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - "area: ci"
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      python:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
+  # Delete this block in a repository with no package.json.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      production:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      development:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies

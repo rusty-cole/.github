@@ -1,0 +1,105 @@
+name: Feature request
+description: Propose a new capability or product improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help evaluate this request with concrete use cases and tradeoffs.
+
+        Leave "Work item" blank unless you already have one. The triage identity fills it in
+        when it links this issue to an existing tracker work item or creates a new one.
+  - type: input
+    id: work_item
+    attributes:
+      label: Work item
+      description: >
+        URL or identifier of the tracker work item this issue belongs to. Filled by the triage
+        identity when it links or creates the Work item.
+      placeholder: ITEM-42
+    validations:
+      required: false
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      description: Repository this capability belongs to.
+      placeholder: rusty-cole/example-repo
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line statement of the requested capability.
+      placeholder: Publish a generated index page of every receipt so nothing depends on reading commit history.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What pain this solves and why current behavior is insufficient.
+      placeholder: >
+        Receipts exist per item but there is no single page listing them, so checking what the loop
+        did overnight means walking the commit log.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed solution
+      description: Desired behavior, interface, or output with as much specificity as possible.
+      placeholder: >
+        Generate receipts/index.html from the JSON twins on every merge, one row per item with
+        status, actors, and links to the Work item, issue, pull request, and merge commit.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches considered and why they are weaker.
+      placeholder: A Grafana panel needs a live datasource and does not survive the repository being read on its own.
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: |
+        Explain who is affected, severity and urgency, how often this pain occurs, and the
+        practical consequence.
+        Include:
+        - Affected repositories, items, or operators
+        - Severity (annoying, blocks the loop, and so on)
+        - Frequency (always, intermittent, edge case)
+        - Consequence (delays, errors, extra manual work, and so on)
+      placeholder: |
+        Affected: anyone reviewing an overnight run
+        Severity: Medium
+        Frequency: every review
+        Consequence: 10 to 15 minutes of log reading per run before any judgement can be made
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and examples
+      description: Prior art, links, screenshots, logs, or metrics.
+  - type: dropdown
+    id: implementation_intent
+    attributes:
+      label: Who implements this?
+      description: Helps route the item.
+      options:
+        - The loop (decompose into Work items and let the runner build it)
+        - A human, with the loop verifying
+        - Proposing the idea only
+    validations:
+      required: true
+  - type: textarea
+    id: additional_information
+    attributes:
+      label: Additional information
+      description: Extra context, constraints, or references not covered above.

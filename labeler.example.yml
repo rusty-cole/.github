@@ -1,0 +1,55 @@
+# actions/labeler v5 configuration example, consumed by the Labeler workflow template.
+#
+# Copy to .github/labeler.yml in the target repository and edit the globs.
+# The v5 schema is a mapping of label name to a list of match rules; each rule is
+# any-glob-to-any-file or all-globs-to-all-files under changed-files.
+#
+# Kept deliberately short. The OpenClaw original is 851 lines because it labels a large
+# monorepo by area. Add a label here when a label would change what someone does, not to
+# describe the diff.
+
+"area: runner":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "runner/**"
+
+"area: temporal":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "temporal_worker/**"
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "package-lock.json"
+          - "pnpm-lock.yaml"
+          - "pyproject.toml"
+          - "uv.lock"
+          - "requirements*.txt"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+          - "**/*_test.py"
+          - "**/test_*.py"
+
+# Applied to anything the runner generates. The Stale workflow template exempts this
+# label so a slow build is never closed out from under the loop.
+loop:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "receipts/**"

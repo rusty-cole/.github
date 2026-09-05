@@ -1,0 +1,6 @@
+{
+  "name": "Stale",
+  "description": "Daily stale sweep for issues and pull requests, with a loop label exemption so runner-owned work is never auto-closed.",
+  "iconName": "octicon clock",
+  "categories": ["Automation"]
+}

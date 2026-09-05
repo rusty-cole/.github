@@ -1,0 +1,6 @@
+{
+  "name": "Security Sensitive Guard",
+  "description": "Labels and fails a pull request that touches security-sensitive paths so a human reviews it and the runner does not auto-merge.",
+  "iconName": "octicon shield",
+  "categories": ["Security"]
+}
