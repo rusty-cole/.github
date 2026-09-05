@@ -1,0 +1,6 @@
+{
+  "name": "Labeler",
+  "description": "Path labels from .github/labeler.yml plus an automatic pull request size label, applied as the triage identity.",
+  "iconName": "octicon tag",
+  "categories": ["Automation"]
+}
