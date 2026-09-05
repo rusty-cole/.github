@@ -1,0 +1,169 @@
+name: Bug report
+description: Report defects, including regressions, crashes, and behavior bugs.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep every answer concise, reproducible, and grounded in observed evidence.
+        Do not speculate or infer beyond the evidence. If a narrative section cannot be
+        answered from the available evidence, respond with exactly `NOT_ENOUGH_INFO`.
+
+        Report one defect per submission. Break multiple defects up into separate submissions.
+
+        Leave "Plane item" blank unless you already have one. The triage identity fills it in
+        when it links this issue to an existing Plane work item or creates a new one.
+  - type: input
+    id: plane_item
+    attributes:
+      label: Plane item
+      description: >
+        URL or identifier of the Plane work item this issue belongs to, for example
+        SETUP-2 or the full item URL. Filled by the triage identity when it links or
+        creates the Plane item.
+      placeholder: SETUP-2
+    validations:
+      required: false
+  - type: dropdown
+    id: bug_type
+    attributes:
+      label: Bug type
+      description: Choose the category that best matches this report.
+      options:
+        - Regression (worked before, now fails)
+        - Crash (process or app exits or hangs)
+        - Behavior bug (incorrect output or state without crash)
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: >
+        One-sentence statement of what is broken, based only on observed evidence.
+        If the evidence is insufficient, respond with exactly `NOT_ENOUGH_INFO`.
+      placeholder: >
+        After the merge pass moved to squash merges, the Plane merge comment carries the PR
+        URL but not the merge commit URL; reproduced on two items and confirmed in the receipt JSON.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >
+        Provide the shortest deterministic repro path supported by direct observation.
+        If the repro path cannot be grounded from the evidence, respond with exactly `NOT_ENOUGH_INFO`.
+      placeholder: |
+        1. Claim any item in the Plane Setup project with merge_enabled true.
+        2. Let the builder push the branch and open the PR.
+        3. Approve and let the merge pass run.
+        4. Read the Plane merge comment and observe no merge commit URL.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: >
+        State the expected result using a concrete reference such as prior observed behavior,
+        attached docs, or a known-good commit. If no grounded reference exists, respond with
+        exactly `NOT_ENOUGH_INFO`.
+      placeholder: The merge comment should carry both the merged PR URL and the merge commit URL.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: >
+        Describe only the observed result, including user-visible errors and cited evidence.
+        If the observed result cannot be grounded from the evidence, respond with exactly `NOT_ENOUGH_INFO`.
+      placeholder: The merge comment carries the PR URL only; the receipt JSON has merge_commit_url set to null.
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      description: Repository and branch or ref where this occurs.
+      placeholder: rusty-cole/plane-runner at main
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: >
+        URL of the exact commit tested, not a bare SHA. Use the
+        https://github.com/OWNER/REPO/commit/SHA form.
+      placeholder: https://github.com/rusty-cole/plane-runner/commit/0000000000000000000000000000000000000000
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Host and runtime where this occurs.
+      placeholder: KVM8 Ubuntu 24.04, Python 3.12, Node 22.23.2
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness
+      description: Which agent harness produced or observed the behavior.
+      placeholder: Claude Code / Codex / OpenClaw / runner only
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: Effective model under test, or "none" when no model was involved.
+      placeholder: claude-opus-5 / gpt-5-codex / none
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >
+        Redacted logs, run output, or version comparisons that support the grounded answers above.
+        Never paste a key, token, or private key.
+      render: shell
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, recordings, and evidence
+      description: >
+        Screenshots, recordings, receipt URLs, Temporal run URLs, Grafana panels, or other
+        evidence that supports the grounded answers above. Link every artifact as a URL.
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and severity
+      description: |
+        Explain who is affected, how severe it is, how often it happens, and the practical
+        consequence, using only observed evidence. If any part cannot be grounded from the
+        evidence, respond with exactly `NOT_ENOUGH_INFO`.
+        Include:
+        - Affected repositories, items, or operators
+        - Severity (annoying, blocks the loop, data risk, and so on)
+        - Frequency (always, intermittent, edge case)
+        - Consequence (unreadable evidence, wrong merge, wasted run, and so on)
+      placeholder: |
+        Affected: every merged item in plane-runner-proof
+        Severity: Medium (evidence is incomplete, the merge itself is correct)
+        Frequency: 2 of 2 observed merges
+        Consequence: a reader cannot reach the merge commit from Plane without opening GitHub search
+  - type: textarea
+    id: additional_information
+    attributes:
+      label: Additional information
+      description: >
+        Any remaining grounded context that helps triage but does not fit above. For a regression,
+        include the last known good and first known bad commit URLs when observed. If there is not
+        enough evidence, respond with exactly `NOT_ENOUGH_INFO`.
