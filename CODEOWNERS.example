@@ -1,0 +1,33 @@
+# CODEOWNERS example for a repository in the plane-runner loop.
+#
+# Copy this file to .github/CODEOWNERS in the target repository and edit the paths.
+# It cannot live here and apply automatically: CODEOWNERS is NOT one of the default
+# community health files GitHub inherits from a .github repository. Every repository
+# needs its own copy.
+#
+# What this is for in the loop: CODEOWNERS is what makes "a human must look at this"
+# enforceable. When a path here matches, GitHub requests review from the owner, and with
+# "Require review from Code Owners" enabled in branch protection the builder identity
+# cannot merge until that review exists.
+#
+# Bot identities must never be listed as owners. An owner is a person who can say no.
+
+# Default owner for everything not matched below.
+*                           @rusty-cole
+
+# The loop's own control surfaces. A change here changes how every other change is made,
+# so it always needs a person.
+/.github/                   @rusty-cole
+/.github/workflows/         @rusty-cole
+/plane_runner/              @rusty-cole
+/temporal_worker/           @rusty-cole
+
+# Anything that can move money, secrets, or production.
+/deploy/                    @rusty-cole
+/infra/                     @rusty-cole
+**/secrets/                 @rusty-cole
+*.pem                       @rusty-cole
+
+# Generated evidence. Owned so a person notices if it is ever hand-edited, which would
+# defeat the point of it being generated.
+/receipts/                  @rusty-cole
