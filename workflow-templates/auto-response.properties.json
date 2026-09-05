@@ -1,6 +1,6 @@
 {
   "name": "Auto Response",
-  "description": "Checks that a new issue answered every required field of its form, labels needs-info and needs-plane-item, and comments once with what is missing.",
+  "description": "Checks that a new issue answered every required field of its form, labels needs-info and needs-work-item, and comments once with what is missing.",
   "iconName": "octicon comment-discussion",
   "categories": ["Automation"]
 }

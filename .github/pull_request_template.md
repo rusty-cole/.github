@@ -52,7 +52,7 @@ Every entry is a URL. Bare SHAs belong in the JSON receipt, not here.
 
 | Field | Value |
 | --- | --- |
-| Plane item | <!-- runner: item URL --> |
+| Work item | <!-- runner: item URL --> |
 | Branch | <!-- runner: https://github.com/OWNER/REPO/tree/BRANCH --> |
 | Verified commit | <!-- runner: https://github.com/OWNER/REPO/commit/SHA --> |
 | Compare against base | <!-- runner: https://github.com/OWNER/REPO/compare/BASE_SHA...HEAD_SHA --> |

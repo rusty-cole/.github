@@ -11,7 +11,7 @@
 "area: runner":
   - changed-files:
       - any-glob-to-any-file:
-          - "plane_runner/**"
+          - "runner/**"
 
 "area: temporal":
   - changed-files:

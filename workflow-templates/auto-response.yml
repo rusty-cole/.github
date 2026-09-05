@@ -7,9 +7,9 @@ name: Auto Response
 # check the required template fields, say what is missing, and label the issue so the
 # triage identity and the runner can both see the result.
 #
-# Linking to Plane is deliberately NOT done here. It needs Plane credentials, which do
-# not belong in a GitHub Actions runner. The KVM8 triage service does the Plane link and
-# fills the "Plane item" field. See github-layer-spec.md, Triage flow.
+# Linking to the tracker is deliberately NOT done here. It needs tracker credentials, which do
+# not belong in a GitHub Actions runner. The the runner host triage service does the tracker link and
+# fills the "Work item" field. See the runner's private specification, Triage flow.
 #
 # Runs as the triage identity (Ratatoskr) when RATATOSKR_APP_ID and RATATOSKR_PRIVATE_KEY
 # are set, otherwise as github-actions[bot] via GITHUB_TOKEN.
@@ -100,16 +100,16 @@ jobs:
             const missing = required.filter((heading) => fieldValue(heading) === null);
             const notEnoughInfo = required.filter((heading) => (fieldValue(heading) || "") === "NOT_ENOUGH_INFO");
 
-            const planeItem = fieldValue("Plane item");
+            const workItem = fieldValue("Work item");
             const wantedLabels = new Set();
             if (missing.length > 0) {
               wantedLabels.add("needs-info");
             }
-            if (!planeItem) {
-              wantedLabels.add("needs-plane-item");
+            if (!workItem) {
+              wantedLabels.add("needs-work-item");
             }
 
-            for (const label of ["needs-info", "needs-plane-item"]) {
+            for (const label of ["needs-info", "needs-work-item"]) {
               const has = labels.includes(label);
               if (wantedLabels.has(label) && !has) {
                 await github.rest.issues.addLabels({

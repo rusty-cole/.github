@@ -1,37 +1,37 @@
-# Plane mirror
+# Work tracker mirror
 
-How each GitHub issue form maps to a Plane work item type and its properties.
+How each GitHub issue form maps to a tracker work item type and its properties.
 
-This file exists so the KVM8 lane can create the Plane work item types without guessing.
-An issue and its Plane item should have the same shape, so a person reading either one
+This file exists so the runner lane can create the tracker work item types without guessing.
+An issue and its Work item should have the same shape, so a person reading either one
 sees the same facts in the same order.
 
-Plane project: Plane Setup, id `5fd30dbf-6f9e-441c-ac70-0a4da02daf67`
+Work tracker project: the runner's setup project.
 Forms: `.github/ISSUE_TEMPLATE/bug_report.yml`, `docs_bug_report.yml`, `feature_request.yml`
 
 ## How to read the tables
 
 - **Form field id** is the `id:` in the issue form YAML. The runner parses the rendered
   issue body by its `label:` heading, so both are listed.
-- **Plane property** is the property to create on the work item type.
-- **Plane type** is the Plane property type to create it as.
+- **Tracker property** is the property to create on the work item type.
+- **Tracker type** is the Tracker property type to create it as.
 - **Required** matches the form's `validations.required`.
 
-Two fields are deliberately not Plane properties:
+Two fields are deliberately not the tracker properties:
 
-- **Plane item** on the form is the back link to Plane. It holds the Plane identifier or
-  URL and is written into the GitHub issue by the triage identity. It has no Plane
-  property of its own, because in Plane it is the item.
-- **Summary** maps to the Plane work item **name**, not to a property. A work item already
+- **Work item** on the form is the back link to the tracker. It holds the the tracker identifier or
+  URL and is written into the GitHub issue by the triage identity. It has no the tracker
+  property of its own, because in the tracker it is the item.
+- **Summary** maps to the tracker work item **name**, not to a property. A work item already
   has a title; duplicating it as a property would let the two drift apart.
 
 ## Work item type: Bug
 
 Source form: `bug_report.yml`. GitHub labels applied by the form: `bug`.
 
-| Form field id | Form label | Plane property | Plane type | Required |
+| Form field id | Form label | Tracker property | Tracker type | Required |
 | --- | --- | --- | --- | --- |
-| `plane_item` | Plane item | (none, this is the item) | n/a | no |
+| `work_item` | Work item | (none, this is the item) | n/a | no |
 | `bug_type` | Bug type | Bug type | Option (single select) | yes |
 | `summary` | Summary | (work item name) | n/a | yes |
 | `repro` | Steps to reproduce | Steps to reproduce | Text (multi line) | yes |
@@ -54,7 +54,7 @@ Option values for **Bug type**, exactly as the form lists them:
 - `Behavior bug (incorrect output or state without crash)`
 
 Option values for **Harness**. The form takes free text so an unexpected harness is not
-lost, but Plane should offer these and accept others:
+lost, but the tracker should offer these and accept others:
 
 - `Claude Code`
 - `Codex`
@@ -65,9 +65,9 @@ lost, but Plane should offer these and accept others:
 
 Source form: `docs_bug_report.yml`. GitHub labels applied by the form: `bug`, `docs`.
 
-| Form field id | Form label | Plane property | Plane type | Required |
+| Form field id | Form label | Tracker property | Tracker type | Required |
 | --- | --- | --- | --- | --- |
-| `plane_item` | Plane item | (none, this is the item) | n/a | no |
+| `work_item` | Work item | (none, this is the item) | n/a | no |
 | `summary` | Summary | (work item name) | n/a | yes |
 | `doc_paths` | Affected docs path or URL | Affected docs URL | URL | yes |
 | `repository` | Repository | Repository | Text (single line) | yes |
@@ -82,9 +82,9 @@ Source form: `docs_bug_report.yml`. GitHub labels applied by the form: `bug`, `d
 
 Source form: `feature_request.yml`. GitHub labels applied by the form: `enhancement`.
 
-| Form field id | Form label | Plane property | Plane type | Required |
+| Form field id | Form label | Tracker property | Tracker type | Required |
 | --- | --- | --- | --- | --- |
-| `plane_item` | Plane item | (none, this is the item) | n/a | no |
+| `work_item` | Work item | (none, this is the item) | n/a | no |
 | `repository` | Repository | Repository | Text (single line) | yes |
 | `summary` | Summary | (work item name) | n/a | yes |
 | `problem` | Problem to solve | Problem to solve | Text (multi line) | yes |
@@ -97,7 +97,7 @@ Source form: `feature_request.yml`. GitHub labels applied by the form: `enhancem
 
 Option values for **Who implements this**, exactly as the form lists them:
 
-- `The loop (decompose into Plane items and let the runner build it)`
+- `The loop (decompose into Work items and let the runner build it)`
 - `A human, with the loop verifying`
 - `Proposing the idea only`
 
@@ -105,7 +105,7 @@ Option values for **Who implements this**, exactly as the form lists them:
 
 Create these on every type. They are written by the runner, never typed by a person.
 
-| Plane property | Plane type | Written by | Notes |
+| Tracker property | Tracker type | Written by | Notes |
 | --- | --- | --- | --- |
 | GitHub issue | URL | triage identity | Set when the issue is created or linked. |
 | GitHub pull request | URL | builder identity | Set when the pull request is opened. |

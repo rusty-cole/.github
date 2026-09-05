@@ -1,8 +1,8 @@
 # rusty-cole/.github
 
-Shared GitHub defaults for the repositories in the plane-runner loop.
+Shared GitHub defaults for the repositories in the custom product management runner loop.
 
-Plane is the work authority. GitHub is where the evidence lives in a form a person can
+The work tracker is the work authority. GitHub is where the evidence lives in a form a person can
 read: one issue and one pull request per item, with a direct URL everywhere someone looks.
 This repository holds the parts of that which are the same in every repository, so they are
 written once and adopted, not retyped and slowly diverged.
@@ -18,7 +18,7 @@ written once and adopted, not retyped and slowly diverged.
 | `CODEOWNERS.example` | Who must review what | Copy to `.github/CODEOWNERS` and edit |
 | `labeler.example.yml` | Path to label rules | Copy to `.github/labeler.yml` and edit |
 | `dependabot.example.yml` | Dependency and action pin updates | Copy to `.github/dependabot.yml` and edit |
-| `PLANE-MIRROR.md` | Field by field map from each issue form to a Plane work item type | Read it when creating the Plane types |
+| `WORK-TRACKER-MIRROR.md` | Field by field map from each issue form to a tracker work item type | Read it when creating the Tracker types |
 
 ## What is automatic and what is not
 
@@ -82,7 +82,7 @@ adopting it.
 | --- | --- | --- |
 | `labeler.yml` | Path labels plus a pull request size label | Title lint and Barnacle backfill dropped (repository scripts) |
 | `stale.yml` | Daily stale sweep, exempting the `loop` label | Backfill job dropped; OpenClaw labels and Discord copy replaced |
-| `auto-response.yml` | Checks a new issue answered every required field | Whole body rewritten inline; the Plane link happens on KVM8, not here |
+| `auto-response.yml` | Checks a new issue answered every required field | Whole body rewritten inline; the tracker link happens on the runner host, not here |
 | `maintainer-command-reactions.yml` | Acknowledges a maintainer slash command | Command list is now a repository variable |
 | `pr-ci-sweeper.yml` | Reports pull requests whose head commit has no checks | Reports only; does not close, reopen, or rerun anything |
 | `workflow-sanity.yml` | Tabs, actionlint, and an unpinned-action check | git-owner, pre-commit, and zizmor lanes dropped; pin check added |
@@ -91,7 +91,7 @@ adopting it.
 | `security-sensitive-guard.yml` | Labels and fails a pull request touching sensitive paths | Team and approver lookups replaced with inline glob matching |
 | `codeql.yml` | CodeQL security and quality analysis | Seven-way custom config matrix replaced with the default suite |
 | `dated-todo-sweep.yml` | Weekly overdue TODO report in one tracking issue | Codex lane dropped; no API key needed |
-| `secret-scan.yml` | gitleaks on every branch and pull request | New. No OpenClaw ancestor. Implements Plane item SETUP-18 |
+| `secret-scan.yml` | gitleaks on every branch and pull request | New. No OpenClaw ancestor. Implements Work item ITEM-42 |
 
 Two of these overlap on purpose. `codeql.yml` needs GitHub Advanced Security on a private
 repository; `opengrep-precise.yml` does not. Take CodeQL where you can and OpenGrep where
@@ -110,6 +110,6 @@ you cannot, and do not take both unless you want two sets of findings.
 
 ## Where the rest of this lives
 
-The specification the KVM8 lane implements, covering the issue and pull request flow, the
+The specification the runner lane implements, covering the issue and pull request flow, the
 URL rules, the story comment, the receipts, and the reviewer and triage flows, is in
-`agent-repo` at `reference/plane-runner/github-layer-spec.md`.
+the runner's private repository.

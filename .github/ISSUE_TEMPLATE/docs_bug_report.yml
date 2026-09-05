@@ -11,16 +11,16 @@ body:
         Report a documentation defect with concrete evidence from current docs content or behavior.
         Report one documentation defect per submission.
 
-        Leave "Plane item" blank unless you already have one. The triage identity fills it in
-        when it links this issue to an existing Plane work item or creates a new one.
+        Leave "Work item" blank unless you already have one. The triage identity fills it in
+        when it links this issue to an existing tracker work item or creates a new one.
   - type: input
-    id: plane_item
+    id: work_item
     attributes:
-      label: Plane item
+      label: Work item
       description: >
-        URL or identifier of the Plane work item this issue belongs to. Filled by the triage
-        identity when it links or creates the Plane item.
-      placeholder: SETUP-3
+        URL or identifier of the tracker work item this issue belongs to. Filled by the triage
+        identity when it links or creates the Work item.
+      placeholder: ITEM-42
     validations:
       required: false
   - type: textarea
@@ -38,7 +38,7 @@ body:
       description: >
         Repository-relative docs path or published docs URL. Prefer a blob-at-commit URL so the
         line numbers stay valid: https://github.com/OWNER/REPO/blob/SHA/path/to/file.md#L10-L20
-      placeholder: https://github.com/rusty-cole/plane-runner/blob/main/README.md
+      placeholder: https://github.com/rusty-cole/example-repo/blob/main/README.md
     validations:
       required: true
   - type: input
@@ -46,7 +46,7 @@ body:
     attributes:
       label: Repository
       description: Repository that owns the docs.
-      placeholder: rusty-cole/plane-runner
+      placeholder: rusty-cole/example-repo
     validations:
       required: true
   - type: textarea

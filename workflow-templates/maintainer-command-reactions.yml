@@ -6,8 +6,8 @@ name: Maintainer Command Reactions
 # the bot-actor skip, and the reaction error handling are unchanged from the original.
 #
 # This workflow only acknowledges a command with an eyes reaction so a person can see it
-# was received. It deliberately does not execute anything. The KVM8 runner watches for
-# these commands and acts on them, because acting requires Plane and repository state that
+# was received. It deliberately does not execute anything. The runner watches for
+# these commands and acts on them, because acting requires tracker and repository state that
 # a GitHub Actions runner does not have.
 
 on:

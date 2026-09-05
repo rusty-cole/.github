@@ -9,16 +9,16 @@ body:
       value: |
         Help evaluate this request with concrete use cases and tradeoffs.
 
-        Leave "Plane item" blank unless you already have one. The triage identity fills it in
-        when it links this issue to an existing Plane work item or creates a new one.
+        Leave "Work item" blank unless you already have one. The triage identity fills it in
+        when it links this issue to an existing tracker work item or creates a new one.
   - type: input
-    id: plane_item
+    id: work_item
     attributes:
-      label: Plane item
+      label: Work item
       description: >
-        URL or identifier of the Plane work item this issue belongs to. Filled by the triage
-        identity when it links or creates the Plane item.
-      placeholder: SETUP-6
+        URL or identifier of the tracker work item this issue belongs to. Filled by the triage
+        identity when it links or creates the Work item.
+      placeholder: ITEM-42
     validations:
       required: false
   - type: input
@@ -26,7 +26,7 @@ body:
     attributes:
       label: Repository
       description: Repository this capability belongs to.
-      placeholder: rusty-cole/plane-runner
+      placeholder: rusty-cole/example-repo
     validations:
       required: true
   - type: textarea
@@ -54,7 +54,7 @@ body:
       description: Desired behavior, interface, or output with as much specificity as possible.
       placeholder: >
         Generate receipts/index.html from the JSON twins on every merge, one row per item with
-        status, actors, and links to the Plane item, issue, pull request, and merge commit.
+        status, actors, and links to the Work item, issue, pull request, and merge commit.
     validations:
       required: true
   - type: textarea
@@ -93,7 +93,7 @@ body:
       label: Who implements this?
       description: Helps route the item.
       options:
-        - The loop (decompose into Plane items and let the runner build it)
+        - The loop (decompose into Work items and let the runner build it)
         - A human, with the loop verifying
         - Proposing the idea only
     validations:

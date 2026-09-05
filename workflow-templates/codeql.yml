@@ -9,7 +9,7 @@ name: CodeQL
 #
 # Set the repository variable CODEQL_LANGUAGES_JSON to match the repository. It is a JSON
 # array of CodeQL language identifiers, because it feeds a matrix directly:
-#   ["python"]                            for plane-runner
+#   ["python"]                            for the runner
 #   ["python","javascript-typescript"]    for a mixed repository
 # It defaults to ["python"]. A plain comma separated list will not work here.
 #

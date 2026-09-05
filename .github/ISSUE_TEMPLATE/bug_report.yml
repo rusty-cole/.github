@@ -13,17 +13,17 @@ body:
 
         Report one defect per submission. Break multiple defects up into separate submissions.
 
-        Leave "Plane item" blank unless you already have one. The triage identity fills it in
-        when it links this issue to an existing Plane work item or creates a new one.
+        Leave "Work item" blank unless you already have one. The triage identity fills it in
+        when it links this issue to an existing tracker work item or creates a new one.
   - type: input
-    id: plane_item
+    id: work_item
     attributes:
-      label: Plane item
+      label: Work item
       description: >
-        URL or identifier of the Plane work item this issue belongs to, for example
-        SETUP-2 or the full item URL. Filled by the triage identity when it links or
-        creates the Plane item.
-      placeholder: SETUP-2
+        URL or identifier of the tracker work item this issue belongs to, for example
+        ITEM-42 or the full item URL. Filled by the triage identity when it links or
+        creates the Work item.
+      placeholder: ITEM-42
     validations:
       required: false
   - type: dropdown
@@ -45,7 +45,7 @@ body:
         One-sentence statement of what is broken, based only on observed evidence.
         If the evidence is insufficient, respond with exactly `NOT_ENOUGH_INFO`.
       placeholder: >
-        After the merge pass moved to squash merges, the Plane merge comment carries the PR
+        After the merge pass moved to squash merges, the tracker merge comment carries the PR
         URL but not the merge commit URL; reproduced on two items and confirmed in the receipt JSON.
     validations:
       required: true
@@ -57,10 +57,10 @@ body:
         Provide the shortest deterministic repro path supported by direct observation.
         If the repro path cannot be grounded from the evidence, respond with exactly `NOT_ENOUGH_INFO`.
       placeholder: |
-        1. Claim any item in the Plane Setup project with merge_enabled true.
+        1. Claim any item in the tracker with merge_enabled true.
         2. Let the builder push the branch and open the PR.
         3. Approve and let the merge pass run.
-        4. Read the Plane merge comment and observe no merge commit URL.
+        4. Read the tracker merge comment and observe no merge commit URL.
     validations:
       required: true
   - type: textarea
@@ -89,7 +89,7 @@ body:
     attributes:
       label: Repository
       description: Repository and branch or ref where this occurs.
-      placeholder: rusty-cole/plane-runner at main
+      placeholder: rusty-cole/example-repo at main
     validations:
       required: true
   - type: input
@@ -99,7 +99,7 @@ body:
       description: >
         URL of the exact commit tested, not a bare SHA. Use the
         https://github.com/OWNER/REPO/commit/SHA form.
-      placeholder: https://github.com/rusty-cole/plane-runner/commit/0000000000000000000000000000000000000000
+      placeholder: https://github.com/rusty-cole/example-repo/commit/0000000000000000000000000000000000000000
     validations:
       required: true
   - type: input
@@ -107,7 +107,7 @@ body:
     attributes:
       label: Environment
       description: Host and runtime where this occurs.
-      placeholder: KVM8 Ubuntu 24.04, Python 3.12, Node 22.23.2
+      placeholder: Ubuntu 24.04, Python 3.12, Node 22
     validations:
       required: true
   - type: input
@@ -155,10 +155,10 @@ body:
         - Frequency (always, intermittent, edge case)
         - Consequence (unreadable evidence, wrong merge, wasted run, and so on)
       placeholder: |
-        Affected: every merged item in plane-runner-proof
+        Affected: every merged item in example-repo
         Severity: Medium (evidence is incomplete, the merge itself is correct)
         Frequency: 2 of 2 observed merges
-        Consequence: a reader cannot reach the merge commit from Plane without opening GitHub search
+        Consequence: a reader cannot reach the merge commit from the tracker without opening GitHub search
   - type: textarea
     id: additional_information
     attributes:

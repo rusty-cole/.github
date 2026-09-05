@@ -4,7 +4,7 @@ name: Dated TODO Sweep
 # Made repository-neutral: the OpenClaw original runs scripts/dated-todo-scan.mts, then
 # hands the result to openai/codex-action with .github/codex/prompts/dated-todo-sweep.md,
 # then upserts a tracking issue. The Codex lane is dropped: it needs an OpenAI key in CI,
-# and in this loop the agents run on KVM8, not in a GitHub Actions runner.
+# and in this loop the agents run on the runner host, not in a GitHub Actions runner.
 #
 # What is kept is the useful half, with no repository script and no API key: scan the tree
 # for dated TODO markers that are now past due, and keep one tracking issue up to date.
