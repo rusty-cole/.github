@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "admission": {
+    "live_record": "runtime/admission.json",
+    "deployment_admission": "Not set by this repository file; evaluate live deployment evidence before admission.",
+    "live_record_scope": "Private Mini coordinator root; current state is evaluated at intake."
+  },
+  "bootstrap_paths": [
+    ".coderabbit.yaml",
+    ".github/mini-policy.json",
+    ".github/tests/config.test.mjs",
+    ".github/mini/flow.md",
+    ".github/ISSUE_TEMPLATE/mini-request.yml",
+    ".github/workflows/mini-ci.yml"
+  ],
+  "normal_request_paths": {
+    "paths": [
+      "README.md"
+    ],
+    "prefixes": []
+  }
+}

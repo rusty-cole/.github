@@ -1,0 +1,14 @@
+reviews:
+  request_changes_workflow: true
+  review_status: true
+  review_details: true
+  fail_commit_status: true
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 0
+    drafts: false
+    ignore_usernames: []
+  finishing_touches:
+    unit_tests:
+      enabled: false
