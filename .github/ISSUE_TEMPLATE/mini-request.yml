@@ -1,0 +1,25 @@
+name: Mini request
+description: Request a future harmless change for coordinator admission.
+labels: ["mini:ready"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Scope: harmless repository changes only; no production deployment,
+        infrastructure changes, paid services, or credentials.
+        The mini:ready label is intake intent only. The coordinator must verify
+        owner authorization before accepting a request.
+  - type: textarea
+    id: request
+    attributes:
+      label: Request
+      description: Describe the requested change and its bounded scope.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: List observable outcomes and checks that establish success.
+    validations:
+      required: true
