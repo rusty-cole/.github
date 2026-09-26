@@ -1,5 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Work tracker
-    url: https://github.com/rusty-cole
-    about: "The work tracker is the work authority. Scope, priority, and state live there, not in GitHub issues."
