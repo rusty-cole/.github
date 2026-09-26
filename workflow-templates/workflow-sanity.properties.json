@@ -1,6 +1,0 @@
-{
-  "name": "Workflow Sanity",
-  "description": "Checks workflow files for tabs, runs actionlint, and fails any action reference that is not pinned to a 40 character commit SHA.",
-  "iconName": "octicon checklist",
-  "categories": ["Continuous integration"]
-}

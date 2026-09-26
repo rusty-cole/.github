@@ -1,6 +1,0 @@
-{
-  "name": "PR CI Sweeper",
-  "description": "Hourly report of open pull requests whose head commit has no check runs and no commit status, so dropped CI is visible instead of silently blocking a merge.",
-  "iconName": "octicon sync",
-  "categories": ["Continuous integration"]
-}

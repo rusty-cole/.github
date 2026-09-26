@@ -1,6 +1,0 @@
-{
-  "name": "OpenGrep",
-  "description": "Static analysis with opengrep, pinned by version and SHA256. The alternative to CodeQL on a private repository without Advanced Security.",
-  "iconName": "octicon search",
-  "categories": ["Security"]
-}

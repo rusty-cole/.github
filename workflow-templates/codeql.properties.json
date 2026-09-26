@@ -1,6 +1,0 @@
-{
-  "name": "CodeQL",
-  "description": "CodeQL security and quality analysis on pull requests, pushes to main, and nightly. Needs GitHub Advanced Security on a private repository.",
-  "iconName": "octicon shield-check",
-  "categories": ["Security"]
-}
