@@ -23,7 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-name: Ratatoskr commands
+name: ClawSweeper commands
 on:
   issue_comment:
     types:
@@ -31,7 +31,7 @@ on:
       - edited
 permissions: {}
 concurrency:
-  group: ratatoskr-command-${{ github.repository }}-${{ github.event.comment.id }}
+  group: clawsweeper-command-${{ github.repository }}-${{ github.event.comment.id }}
   cancel-in-progress: true
 jobs:
   dispatch:
@@ -40,8 +40,8 @@ jobs:
     if: ${{ !endsWith(github.actor, '[bot]') }}
     permissions: {}
     env:
-      HAS_CLAWSWEEPER_APP_PRIVATE_KEY: ${{ secrets.RATATOSKR_APP_PRIVATE_KEY != '' }}
-      CLAWSWEEPER_APP_CLIENT_ID: Iv23liKcpapUQPjmCOAl
+      HAS_BROKKR_APP_PRIVATE_KEY: ${{ secrets.CLAWSWEEPER_BROKKR_PRIVATE_KEY != '' }}
+      BROKKR_APP_CLIENT_ID: Iv23liKcpapUQPjmCOAl
     steps:
       - name: Pre-filter ClawSweeper comment
         id: comment_filter
@@ -55,29 +55,43 @@ jobs:
           else
             echo "is_command=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Create ClawSweeper dispatch token
+      - name: Validate the configured ClawSweeper engine repository
+        id: engine_repository
+        if: ${{ steps.comment_filter.outputs.is_command == 'true' }}
+        env:
+          ENGINE_REPOSITORY: ${{ secrets.CLAWSWEEPER_ENGINE_REPOSITORY }}
+        run: >
+          set -euo pipefail
+
+          if [[ ! "$ENGINE_REPOSITORY" =~ ^rusty-cole/[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::Configure CLAWSWEEPER_ENGINE_REPOSITORY with the private engine repository, not a GitHub App name."
+            exit 1
+          fi
+
+          printf "name=%s\n" "${ENGINE_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+      - name: Create Brokkr token for the ClawSweeper engine
         id: token
         if: ${{ steps.comment_filter.outputs.is_command == 'true' }}
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: ${{ env.CLAWSWEEPER_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RATATOSKR_APP_PRIVATE_KEY }}
+          client-id: ${{ env.BROKKR_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CLAWSWEEPER_BROKKR_PRIVATE_KEY }}
           owner: rusty-cole
-          repositories: ratatoskr
+          repositories: ${{ steps.engine_repository.outputs.name }}
           permission-contents: write
-      - name: Create target comment token
+      - name: Create Brokkr target comment token
         id: target_token
         if: |-
           ${{
             github.event_name == 'issue_comment' &&
             steps.comment_filter.outputs.is_command == 'true' &&
-            env.HAS_CLAWSWEEPER_APP_PRIVATE_KEY == 'true'
+            env.HAS_BROKKR_APP_PRIVATE_KEY == 'true'
           }}
         continue-on-error: true
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: ${{ env.CLAWSWEEPER_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RATATOSKR_APP_PRIVATE_KEY }}
+          client-id: ${{ env.BROKKR_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CLAWSWEEPER_BROKKR_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
           permission-issues: write
@@ -97,6 +111,7 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
           AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
           SOURCE_ACTION: ${{ github.event.action }}
+          ENGINE_REPOSITORY: ${{ secrets.CLAWSWEEPER_ENGINE_REPOSITORY }}
         run: |
           if [ -z "$DISPATCH_TOKEN" ]; then
             echo "::notice::Skipping ClawSweeper dispatch because no dispatch credential is configured."
@@ -147,6 +162,6 @@ jobs:
             --arg source_event "issue_comment" \
             --arg source_action "$SOURCE_ACTION" \
             '{event_type:"clawsweeper_comment",client_payload:({target_repo:$target_repo,item_number:$item_number,comment_id:$comment_id,source_event:$source_event,source_action:$source_action,max_comments:"1"} + (if $status_comment_id != "" then {status_comment_id:($status_comment_id|tonumber)} else {} end))}')"
-          GH_TOKEN="$DISPATCH_TOKEN" gh api repos/rusty-cole/ratatoskr/dispatches \
+          GH_TOKEN="$DISPATCH_TOKEN" gh api "repos/$ENGINE_REPOSITORY/dispatches" \
             --method POST \
             --input - <<< "$payload"
