@@ -1,0 +1,152 @@
+# Selected command steps from openclaw/clawsweeper@ef832edef590efd84628c44ff1ac9cf9c8f1fa0d
+# Source: docs/target-dispatcher.md; copy/update instructions: docs/installation/account-enrollment.md
+# Adaptations: command-only triggers, own App/destination, scoped PR-comment write.
+# MIT License
+#
+# Copyright (c) 2026 Peter Steinberger
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+name: Ratatoskr commands
+on:
+  issue_comment:
+    types:
+      - created
+      - edited
+permissions: {}
+concurrency:
+  group: ratatoskr-command-${{ github.repository }}-${{ github.event.comment.id }}
+  cancel-in-progress: true
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: ${{ !endsWith(github.actor, '[bot]') }}
+    permissions: {}
+    env:
+      HAS_CLAWSWEEPER_APP_PRIVATE_KEY: ${{ secrets.RATATOSKR_APP_PRIVATE_KEY != '' }}
+      CLAWSWEEPER_APP_CLIENT_ID: Iv23liKcpapUQPjmCOAl
+    steps:
+      - name: Pre-filter ClawSweeper comment
+        id: comment_filter
+        if: ${{ github.event_name == 'issue_comment' }}
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          if grep -Eiq '(^|[[:space:]])@(clawsweeper|openclaw-clawsweeper)\b(\[bot\])?|(^|[[:space:]])/(clawsweeper|review|re-review|rerun([[:space:]]+|-)?review|status|explain|fix|build|implement|create([[:space:]]+|-)?pr|fix([[:space:]]+|-)?issue|autofix|auto([[:space:]]+|-)?fix|automerge|auto([[:space:]]+|-)?merge|approve|stop|autoclose)\b' <<< "$COMMENT_BODY"; then
+            echo "is_command=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_command=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create ClawSweeper dispatch token
+        id: token
+        if: ${{ steps.comment_filter.outputs.is_command == 'true' }}
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        with:
+          client-id: ${{ env.CLAWSWEEPER_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RATATOSKR_APP_PRIVATE_KEY }}
+          owner: rusty-cole
+          repositories: ratatoskr
+          permission-contents: write
+      - name: Create target comment token
+        id: target_token
+        if: |-
+          ${{
+            github.event_name == 'issue_comment' &&
+            steps.comment_filter.outputs.is_command == 'true' &&
+            env.HAS_CLAWSWEEPER_APP_PRIVATE_KEY == 'true'
+          }}
+        continue-on-error: true
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        with:
+          client-id: ${{ env.CLAWSWEEPER_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RATATOSKR_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-issues: write
+          permission-pull-requests: write
+      - name: Acknowledge and dispatch ClawSweeper comment
+        if: |-
+          ${{
+            github.event_name == 'issue_comment' &&
+            steps.comment_filter.outputs.is_command == 'true'
+          }}
+        env:
+          DISPATCH_TOKEN: ${{ steps.token.outputs.token }}
+          TARGET_TOKEN: ${{ steps.target_token.outputs.token }}
+          TARGET_REPO: ${{ github.repository }}
+          ITEM_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          SOURCE_ACTION: ${{ github.event.action }}
+        run: |
+          if [ -z "$DISPATCH_TOKEN" ]; then
+            echo "::notice::Skipping ClawSweeper dispatch because no dispatch credential is configured."
+            exit 0
+          fi
+          body_file="$RUNNER_TEMP/clawsweeper-comment-body.txt"
+          printf '%s\n' "$COMMENT_BODY" > "$body_file"
+          if grep -Eiq '<!--[[:space:]]*clawsweeper-proof-nudge([[:space:]]|-->)' "$body_file"; then
+            echo "Ignoring ClawSweeper proof-nudge comment."
+            exit 0
+          fi
+          if [ -n "$TARGET_TOKEN" ]; then
+            GH_TOKEN="$TARGET_TOKEN" gh api -X POST \
+              -H "Accept: application/vnd.github+json" \
+              "repos/$TARGET_REPO/issues/comments/$COMMENT_ID/reactions" \
+              -f content="eyes" >/dev/null || true
+          fi
+          status_comment_id=""
+          if [ -n "$TARGET_TOKEN" ]; then
+            case "$AUTHOR_ASSOCIATION" in
+              OWNER|MEMBER|COLLABORATOR)
+                status_body="$(printf '%s\n' \
+                  "<!-- clawsweeper-command-ack:$COMMENT_ID -->" \
+                  "🦞👀" \
+                  "ClawSweeper picked this up." \
+                  "" \
+                  "Command router queued. I will update this comment with the next step.")"
+                status_payload="$(jq -nc --arg body "$status_body" '{body:$body}')"
+                status_err="$(mktemp)"
+                if status_response="$(GH_TOKEN="$TARGET_TOKEN" gh api \
+                  "repos/$TARGET_REPO/issues/$ITEM_NUMBER/comments" \
+                  --method POST \
+                  --input - <<< "$status_payload" 2>"$status_err")"; then
+                  status_comment_id="$(jq -r '.id // empty' <<< "$status_response")"
+                else
+                  cat "$status_err" >&2
+                  echo "::warning::Could not create ClawSweeper queued status comment; dispatching command router without one."
+                fi
+                rm -f "$status_err"
+                ;;
+            esac
+          fi
+          payload="$(jq -nc \
+            --arg target_repo "$TARGET_REPO" \
+            --argjson item_number "$ITEM_NUMBER" \
+            --argjson comment_id "$COMMENT_ID" \
+            --arg status_comment_id "$status_comment_id" \
+            --arg source_event "issue_comment" \
+            --arg source_action "$SOURCE_ACTION" \
+            '{event_type:"clawsweeper_comment",client_payload:({target_repo:$target_repo,item_number:$item_number,comment_id:$comment_id,source_event:$source_event,source_action:$source_action,max_comments:"1"} + (if $status_comment_id != "" then {status_comment_id:($status_comment_id|tonumber)} else {} end))}')"
+          GH_TOKEN="$DISPATCH_TOKEN" gh api repos/rusty-cole/ratatoskr/dispatches \
+            --method POST \
+            --input - <<< "$payload"
