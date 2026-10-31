@@ -1,6 +1,0 @@
-reviews:
-  request_changes_workflow: false
-  review_status: true
-  auto_review:
-    enabled: true
-    drafts: false

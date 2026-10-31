@@ -1,6 +1,0 @@
-{
-  "name": "Dependency Guard",
-  "description": "Runs dependency review on a pull request and fails when a lockfile changes without its manifest. The OpenClaw autoscrub lane is intentionally not included.",
-  "iconName": "octicon package-dependencies",
-  "categories": ["Security"]
-}

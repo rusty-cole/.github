@@ -1,6 +1,0 @@
-{
-  "name": "Dated TODO Sweep",
-  "description": "Weekly scan for TODO and FIXME markers whose date has passed, kept in one tracking issue that is rewritten each run.",
-  "iconName": "octicon calendar",
-  "categories": ["Automation"]
-}
